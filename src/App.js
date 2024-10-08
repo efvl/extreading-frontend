@@ -1,12 +1,21 @@
 import React from 'react';
-import Navbar from './layout/Navbar';
+import Langs from './pages/Langs';
+import { BrowserRouter, Routes, Route} from 'react-router-dom';
+import AddEditLang from './pages/AddEditLang';
 import Home from './pages/Home';
+
 
 function App() {
   return (
     <div className="App">
-      <Navbar></Navbar>
-      <Home></Home>
+      <BrowserRouter>
+        <Routes>
+          <Route exact path="/" element={ <Home/> }/>
+          <Route exact path="/lang" element={ <Langs/> }/>
+          <Route exact path="/lang/add" element={ <AddEditLang/> }/>
+          <Route exact path="/lang/edit/:id" element={ <AddEditLang/> }/>
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
