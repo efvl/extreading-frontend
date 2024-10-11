@@ -1,7 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import {Language} from '../models/Language'
 
-const LangTableRow = (props) => {
+interface LanguageProps {
+    lang: Language,
+    rowNum: number,
+    remove: (id: string) => void,
+}
+
+const LangTableRow = (props:LanguageProps) => {
 
     return (
         <tr>

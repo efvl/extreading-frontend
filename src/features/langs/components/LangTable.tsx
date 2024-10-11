@@ -1,9 +1,15 @@
 import React from "react";
-import LangTableRow from "../components/LangTableRow";
+import LangTableRow from "./LangTableRow";
 import Container from 'react-bootstrap/Container';
 import Table from 'react-bootstrap/Table';
+import {Language} from '../models/Language';
 
-const LangTable = ({langs, remove}) => {
+interface LangTableProps {
+    langs: Array<Language>,
+    remove: (id: string) => void,
+}
+
+const LangTable = (props:LangTableProps) => {
 
     return (
         <Container className="py-2">
@@ -18,8 +24,8 @@ const LangTable = ({langs, remove}) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {langs.map((item, index) =>
-                        <LangTableRow key={item.id} rowNum={index + 1} lang={item} remove={remove} />
+                    {props.langs.map((item, index) =>
+                        <LangTableRow key={item.id} rowNum={index + 1} lang={item} remove={props.remove} />
                     )}
                 </tbody>
             </Table>

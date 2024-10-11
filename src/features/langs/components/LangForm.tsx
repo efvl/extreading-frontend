@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import LangService from '../services/LangService'
 import Container from 'react-bootstrap/Container';
@@ -6,16 +6,19 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import {Language} from '../models/Language'; 
 
-const LangForm = (props) => {
+interface LangFormProps {
+    submitAction: (lang: Language) => void,
+    isEdit: boolean,
+    languageId: string,
+}
 
-    const [lang, setLang] = useState({
-        id:"",
-        shortName:"",
-        fullName:""
-    });
+const LangForm = (props:LangFormProps) => {
 
-    const submitLanguage = (e) => {
+    const [lang, setLang] = useState<Language>({});
+
+    const submitLanguage = (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         props.submitAction(lang);
     }
@@ -52,7 +55,7 @@ const LangForm = (props) => {
                                 value={lang.fullName}
                                 onChange={e => setLang({...lang, fullName: e.target.value})}/>
                         </Form.Group>
-                        <Button variant="outline-primary" type="submit" onClick={submitLanguage}>{props.isEdit?' Save ':' Add '} </Button>
+                        <Button variant="outline-primary" type="submit" onClick={(e) => submitLanguage(e)}>{props.isEdit?' Save ':' Add '} </Button>
                         <Link className="btn btn-outline-danger mx-2" to="/lang">Cancel</Link>
                     </Form>
                 </Col>
