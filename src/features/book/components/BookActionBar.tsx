@@ -6,13 +6,13 @@ import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 
-const LangActionBar = () => {
+const BookActionBar = () => {
     return (
         <Container>
             <Row className="pt-2">
                 <ButtonToolbar aria-label="Word Card Toolbar">
                     <ButtonGroup className="me-2" aria-label="Actions group">
-                    <Link className="btn btn-outline-success" to="/lang/add">Add Language</Link>
+                    <Link className="btn btn-outline-success" to="/book/add">Add Book</Link>
                     </ButtonGroup>
                 </ButtonToolbar>
             </Row>
@@ -21,4 +21,4 @@ const LangActionBar = () => {
 
 };
 
-export default LangActionBar;
+export default BookActionBar;

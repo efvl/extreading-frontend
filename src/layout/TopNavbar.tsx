@@ -12,7 +12,11 @@ const TopNavbar = () => {
                 <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="me-auto">
                     <Nav.Link href="/">Home</Nav.Link>
-                    <Nav.Link href="/lang">Languages</Nav.Link>
+                    <Nav.Link href="/editor">Editor</Nav.Link>
+                    <Nav.Link href="/books">Books</Nav.Link>
+                    <Nav.Link href="/dicts">Dictionaries</Nav.Link>
+                    <Nav.Link href="/words">Words</Nav.Link>
+                    <Nav.Link href="/langs">Languages</Nav.Link>
                 </Nav>
                 </Navbar.Collapse>
             </Container>
