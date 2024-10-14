@@ -7,6 +7,8 @@ import { Word } from "../models/Word";
 import WordService from "../services/WordService";
 import { useNavigate } from "react-router-dom";
 import WordForm from "./WordForm";
+import SearchBookPanel from "../../book/components/SearchBookPanel";
+import { Book } from "../../book/models/Book";
 
 const AddWordPanel = () => {
 
@@ -14,24 +16,15 @@ const AddWordPanel = () => {
 
     const [langs, setLangs] = useState<Language[]>([]);
     const [selectedLanguage, setSelectedLanguage] = useState<Language>({});
+    const [selectedBook, setSelectedBook] = useState<Book>({})
 
-    useEffect(() => {
-        loadLanguages();
-    }, []);
 
-    const loadLanguages = async () => {
-        const response = await LangService.searchLanguages({});
-        if(response.data?.length > 0){
-            setLangs(response.data); 
-            setSelectedLanguage(response.data[0]); 
-        }
-    }
-
-    const handleSelectLanguage = (e:string) => {
-        setSelectedLanguage(langs.find(item => item.id == e));
+    const handleSelectBook = (book:Book) => {
+        setSelectedBook(book)
     }
 
     const createNewWord = async (newWord:Word) => {
+        newWord.book = selectedBook;
         const response = await WordService.addWord(newWord);
         navigate('/words');
     }
@@ -40,20 +33,16 @@ const AddWordPanel = () => {
         <Container className="mt-3">
             <Row>
                 <Col md={4} className="border">
+                    <Row>
+                        <SearchBookPanel selectAction={handleSelectBook}></SearchBookPanel>
+                    </Row>
                 </Col>
                 <Col md={6} className="border p-4 ">
                     <h5 className="text-center">Create Word</h5>
-                    <Row>
-                        <Col className="col-8">Language: {selectedLanguage?.fullName}</Col>
-                        <Col className="col-4">
-                            <LangDropdown handler={handleSelectLanguage} langs={langs}/>
-                        </Col>
-                    </Row>
+
                     <Row>
                         <WordForm isEdit={false} submitAction={createNewWord}></WordForm>
                     </Row>
-                </Col>
-                <Col>
                 </Col>
             </Row>
         </Container>    

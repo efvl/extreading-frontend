@@ -40,55 +40,49 @@ const SearchBookPanel = (props:SearchBookPanelProps) => {
     }
 
     const searchBooks = async () => {
-        const response = await BookService.searchBooks({});
+        const response = await BookService.searchBooks( { languageId:selectedLanguage.id } );
         console.log(response.data);
         setBookList(response.data);
     } 
 
     return (
             <Container className="mt-3">
-                <Row>
-                    <Col md={4} className="border">
-                    </Col>
-                    <Col md={6} className="border p-4 ">
-                        <h5 className="text-center">Create Book</h5>
-                        <Row>
-                            <Col className="col-8">Language: {selectedLanguage?.fullName}</Col>
-                            <Col className="col-4">
-                                <LangDropdown handler={handleSelectLanguage} langs={langs}/>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <button onClick={() => searchBooks()} className="btn btn-danger mx-2">Delete</button>
-                        </Row>
-                        <Row>
-                            <Table striped bordered hover className="shadow">
-                                <thead>
+                <Col className="border p-4 ">
+                    <h5 className="text-center">Create Book</h5>
+                    <Row>
+                        <Col className="col-8">Language: {selectedLanguage?.fullName}</Col>
+                        <Col className="col-4">
+                            <LangDropdown handler={handleSelectLanguage} langs={langs}/>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <button onClick={() => searchBooks()} className="btn btn-info mx-2" style={{width: 150}}>Search</button>
+                    </Row>
+                    <Row>
+                        <Table striped bordered hover className="shadow">
+                            <thead>
+                                <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Authors</th>
+                                <th scope="col">Select</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bookList.map((item, index) =>
                                     <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Authors</th>
-                                    <th scope="col">Select</th>
+                                        <th scope="row">{index + 1}</th> 
+                                        <td>{item.title}</td>
+                                        <td>{item.authors}</td>
+                                        <td>
+                                            <button onClick={() => props.selectAction(item)} className="btn btn-primary mx-2">Select</button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {bookList.map((item, index) =>
-                                        <tr>
-                                            <th scope="row">{index + 1}</th> 
-                                            <td>{item.title}</td>
-                                            <td>{item.authors}</td>
-                                            <td>
-                                                <button onClick={() => props.selectAction(item)} className="btn btn-danger mx-2">Select</button>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </Table>
-                        </Row>
-                    </Col>
-                    <Col>
-                    </Col>
-                </Row>
+                                )}
+                            </tbody>
+                        </Table>
+                    </Row>
+                </Col>
             </Container>  
     );
 };
