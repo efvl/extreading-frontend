@@ -1,6 +1,7 @@
+import { UUID } from "crypto";
 
 export interface DictionarySearchRequest {
     ids?: Array<string>;
-    shortName?: string;
+    languageId?: string;
     fullName?: string;
 }
