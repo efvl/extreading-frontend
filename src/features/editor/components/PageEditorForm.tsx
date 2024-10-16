@@ -5,33 +5,50 @@ import Form from 'react-bootstrap/Form';
 
 interface PageEditorFormProps {
     inputPageText?:string,
-    submitAction?:(pageText:string) => void,
+    curPageNum?:number,
+    submitAction?:(pageText:string, pageNum:number) => void,
+    onChangePageNumber?:(pageNum:number) => void,
 }
 
 const PageEditorForm = (props:PageEditorFormProps) => {
 
-    const [pageText, setPageText] = useState<string>("");
+    const [inputPageText, setInputPageText] = useState<string>("");
+    const [curPageNum, setCurPageNum] = useState<number>(0);
 
     useEffect(() => {
-        console.log(props.inputPageText);
         if(props.inputPageText){
-            setPageText(props.inputPageText);
-        } 
+            setInputPageText(props.inputPageText);
+        }
+        if(props.curPageNum){
+            setCurPageNum(props.curPageNum);
+        }
     }, [props]);
 
     const submitPageText = (e) => {
         e.preventDefault();
-        props.submitAction(pageText);
+        props.submitAction(inputPageText, curPageNum);
+    }
+
+    const updatePageNum = (numPage:number) => {
+        setCurPageNum(numPage)
+        props.onChangePageNumber(numPage);
     }
 
     return (
         <Form>
-            <Form.Group className="mb-3" controlId="example">
+            <Form.Group className="mb-3" controlId="pageNum">
+                <Form.Label>Page Number</Form.Label>
+                <Form.Control type="text"
+                    placeholder="Enter page number"
+                    value={curPageNum}
+                    onChange={e => updatePageNum(Number(e.target.value))}/>
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="inputPageText">
                 <Form.Label>Page Text</Form.Label>
                 <Form.Control as="textarea" rows={10} 
                     placeholder="Enter page text"
-                    value={pageText}
-                    onChange={e => setPageText(e.target.value)}/>
+                    value={inputPageText}
+                    onChange={e => setInputPageText(e.target.value)}/>
             </Form.Group>
 
             <div className="text-center p-2">

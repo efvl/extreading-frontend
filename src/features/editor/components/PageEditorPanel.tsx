@@ -8,6 +8,9 @@ import { Word } from "../../word/models/Word";
 import { Book } from "../../book/models/Book";
 import { Dictionary } from "../../dictionary/models/Dictionary";
 import PageWord from "./PageWord";
+import DictionaryService from "../../dictionary/services/DictionaryService";
+import SearchDictionaryPanel from "../../dictionary/components/SearchDictionaryPanel";
+import LangDropdownField from "../../langs/components/LangDropdownField";
 
 
 const PageEditorPanel = () => {
@@ -15,9 +18,11 @@ const PageEditorPanel = () => {
     const [langs, setLangs] = useState<Language[]>([]);
     const [pageWords, setPageWords] = useState<Word[]>([]);
     const [filterLang, setFilterLang] = useState<Language>({});
+    const [filterTxt, setFilterTxt] = useState<string>("");
     const [inputPageText, setInputPageText] = useState<string>("");
     const [selectedBook, setSelectedBook] = useState<Book>({});
     const [selectedDictionary, setSelectedDictionary] = useState<Dictionary>({});
+    const [isDictFound, setIsDictFound] = useState<boolean>(false)
     const [curPageNum, setCurPageNum] = useState<number>(0);
     const [curPageWord, setCurPageWord] = useState<Word>({});
 
@@ -39,14 +44,18 @@ const PageEditorPanel = () => {
         }
     }
 
-    const parsePageText = async (pageText:string) => {
-        let whitespaceChars = /\s/;
-        let newLineChars = /\r|\n/g;
-        let lastChars = /.+(\.|\?|\!)$/
+    let whitespaceChars = /\s/;
+    let newLineChars = /\r|\n/g;
+    let lastChars = /.+(\.|\?|\!)$/
 
-        setInputPageText(pageText);
+    const parsePageText = async (inputText:string, pageNum:number) => {
+        setInputPageText(inputText)
+        setCurPageNum(pageNum)
+        let pageWordsList = [];
+        // setPageWords([])
+        // pageWords.length = 0;
 
-        let pageLines: String[] = pageText.split(newLineChars);
+        let pageLines: String[] = inputText.split(newLineChars);
         pageLines.forEach((line:string, index:number) => {
 
             console.log(" " + index + " " + line);
@@ -57,25 +66,51 @@ const PageEditorPanel = () => {
                 let curWord = { 
                     book: selectedBook,
                     dictionary: selectedDictionary,
-                    pageNum: curPageNum,
+                    pageNum: pageNum,
                     lineNum: index,
                     wordNum: wIndex,
                     original: word,
                     txtContent: word.replace(/\,|\.|\!\?/g, "").toLowerCase()
                 } as Word
-                pageWords.push(curWord);
+                pageWordsList.push(curWord);
                 console.log(" " + wIndex + " " + word)
             })
         })
+        setPageWords(pageWordsList);
     }
 
     const clickPageWordHandler = async (selectedWord:Word) => {
         setCurPageWord(selectedWord);
-        console.log("clicked on: " + selectedWord.original)
+        const response = await DictionaryService.searchDictionaries( { languageId:filterLang.id, txtContent:selectedWord.txtContent } );
+        if(response.data.length > 0) {
+            setSelectedDictionary(response.data[0]);
+            setIsDictFound(true)
+        } else {
+            setSelectedDictionary({} as Dictionary);
+            setIsDictFound(false)
+        }
     }
 
-    const submitWordFormValue = async (e) => {
+    const onChangePageNumber = async (pageNumber:number) => {
+        setCurPageNum(pageNumber);
+    } 
+
+    const submitDictionaryForm = async (e) => {
         e.preventDefault();
+        selectedDictionary.language = filterLang;
+        selectedDictionary.txtContent = curPageWord.txtContent;
+        console.log(selectedDictionary)
+        try {
+            const response = await DictionaryService.addDictionary(selectedDictionary);
+            console.log(response.data)
+            setSelectedDictionary(response.data)
+        } catch(e) {
+            console.log(e.response);
+        }
+    }
+
+    const handleSelectDictionary = (dictionary:Dictionary) => {
+        setSelectedDictionary(dictionary)
     }
 
     return (
@@ -83,7 +118,10 @@ const PageEditorPanel = () => {
             <Row>
                 <Col md={6} className="border">
                     <Row>
-                        <PageEditorForm submitAction={parsePageText}></PageEditorForm>
+                        <PageEditorForm onChangePageNumber={onChangePageNumber} submitAction={parsePageText}></PageEditorForm>
+                    </Row>
+                    <Row>
+                        <span>Page Number: {curPageNum}</span>
                     </Row>
                     <Row>
                         <Col md={1}>
@@ -109,32 +147,57 @@ const PageEditorPanel = () => {
                         </Col>
                     </Row>
                 </Col>
-                <Col md={5} className="border p-4">
+                <Col md={5} className="border p-2">
                     <h5 className="text-center">Dictionary</h5>
                     <Row className="border p-2">
-                        <Col><LangDropdown handler={handleSelectLanguage} langs={langs}/></Col>
-                        <Col><h5> {filterLang.shortName}</h5></Col>
+                        <LangDropdownField handler={handleSelectLanguage} langs={langs}/>
                     </Row>
                     <Row className="border p-2">
-                        <h5>{String(curPageWord?.wordNum).padStart(3, "0")}&emsp;{curPageWord?.original}</h5>
+                        <h5>{String(curPageWord?.lineNum).padStart(3,"0")}&emsp;
+                            {String(curPageWord?.wordNum).padStart(3, "0")}&emsp;
+                            {curPageWord?.original}
+                        </h5>
                     </Row>
                     <Row className="border p-2">
                         <h5>{curPageWord?.txtContent}</h5>
                     </Row>
-                    <Row>
-                        <Form>
-                            <Form.Group className="mb-3" controlId="baseform">
-                                <Form.Label>BaseForm</Form.Label>
-                                <Form.Control type="text" 
-                                    placeholder="enter base form"
-                                    value={selectedDictionary?.baseForm}
-                                    onChange={e => setSelectedDictionary({...selectedDictionary, baseForm: e.target.value})}/>
-                            </Form.Group>
-                            <div className="text-center p-2">
-                                <Button variant="outline-primary" style={{width: 150}} type="submit" onClick={submitWordFormValue}> Save </Button>
-                            </div>
-                        </Form>
-                    </Row>
+                    {isDictFound 
+                        ? <><Row className="border p-2">
+                                <div>id:         {selectedDictionary?.id}</div>
+                                <div>base form:  {selectedDictionary?.baseForm}</div>
+                                <div>grammar:    {selectedDictionary?.grammar}</div>
+                                <div>definition: {selectedDictionary?.definition}</div>
+                            </Row>
+                            <Row>
+                                <Form>
+                                    <Form.Group className="mb-3" controlId="baseform_dic">
+                                        <Form.Label>Base Form</Form.Label>
+                                        <Form.Control type="text" 
+                                            placeholder="enter base form"
+                                            value={selectedDictionary?.baseForm}
+                                            onChange={e => setSelectedDictionary({...selectedDictionary, baseForm: e.target.value})}/>
+                                    </Form.Group>
+                                    <Form.Group className="mb-3" controlId="grammar_dic">
+                                        <Form.Label>Grammar</Form.Label>
+                                        <Form.Control as="textarea" rows={5} 
+                                            placeholder="Enter grammar"
+                                            value={selectedDictionary.grammar}
+                                            onChange={e => setSelectedDictionary({...selectedDictionary, grammar: e.target.value})}/>
+                                    </Form.Group>
+                                    <Form.Group className="mb-3" controlId="definition_dic">
+                                        <Form.Label>Definition</Form.Label>
+                                        <Form.Control as="textarea" rows={5} 
+                                            placeholder="Enter defenition"
+                                            value={selectedDictionary?.definition}
+                                            onChange={e => setSelectedDictionary({...selectedDictionary, definition: e.target.value})}/>
+                                    </Form.Group>
+                                    <div className="text-center p-2">
+                                        <Button variant="outline-primary" style={{width: 150}} type="submit" onClick={submitDictionaryForm}> Save </Button>
+                                    </div>
+                                </Form>
+                            </Row></>
+                        : <Row className="border p-2"><span>NOT FOUND</span></Row>
+                        }
                 </Col>
             </Row>
         </Container>    

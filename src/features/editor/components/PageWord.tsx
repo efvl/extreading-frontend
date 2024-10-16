@@ -25,7 +25,7 @@ const PageWord = (props:PageWordProps) => {
 
     return (
         <>
-            <span onClick={clickWordAction}> {curWord.original}</span>
+            <span onClick={clickWordAction} key={"pageWord_" + props.arrIndex}> {curWord.original}</span>
         </>
     );
 };
