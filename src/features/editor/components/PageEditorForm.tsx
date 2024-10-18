@@ -2,6 +2,7 @@ import React, { MouseEventHandler, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import { InputGroup } from "react-bootstrap";
 
 interface PageEditorFormProps {
     inputPageText?:string,
@@ -36,13 +37,16 @@ const PageEditorForm = (props:PageEditorFormProps) => {
 
     return (
         <Form>
-            <Form.Group className="mb-3" controlId="pageNum">
-                <Form.Label>Page Number</Form.Label>
+            <InputGroup className="mb-3">
+                <InputGroup.Text id="pageNum">Page Number: </InputGroup.Text>
                 <Form.Control type="text"
-                    placeholder="Enter page number"
+                    placeholder="page number"
+                    aria-label="page number"
+                    aria-describedby="pageNum"
                     value={curPageNum}
-                    onChange={e => updatePageNum(Number(e.target.value))}/>
-            </Form.Group>
+                    onChange={e => updatePageNum(Number(e.target.value))}
+                />
+            </InputGroup>
             <Form.Group className="mb-3" controlId="inputPageText">
                 <Form.Label>Page Text</Form.Label>
                 <Form.Control as="textarea" rows={10} 

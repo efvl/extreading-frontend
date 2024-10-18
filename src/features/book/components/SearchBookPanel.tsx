@@ -46,10 +46,9 @@ const SearchBookPanel = (props:SearchBookPanelProps) => {
     } 
 
     return (
-            <Container className="mt-3">
-                <Col className="border p-4 ">
-                    <h5 className="text-center">Create Book</h5>
-                    <Row>
+            <Container>
+                <Col>
+                    <Row className="border p-2">
                         <Col className="col-8">Language: {selectedLanguage?.fullName}</Col>
                         <Col className="col-4">
                             <LangDropdown handler={handleSelectLanguage} langs={langs}/>

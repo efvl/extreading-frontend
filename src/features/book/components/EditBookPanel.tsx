@@ -59,7 +59,7 @@ const EditBookPanel = (props:EditBookPanelProps) => {
             <Row>
                 <Col md={4} className="border">
                 </Col>
-                <Col md={6} className="border p-4 ">
+                <Col md={6} className="border p-4">
                     <Row>
                         <Col className="col-8">Language: {selectedLanguage.fullName}</Col>
                         <Col className="col-4">

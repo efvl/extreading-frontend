@@ -1,4 +1,4 @@
-import { Button, Col, Container, Form, Row } from "react-bootstrap";
+import { Accordion, Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { Language } from "../../langs/models/Language";
 import LangDropdown from "../../langs/components/LangDropdown";
@@ -11,6 +11,9 @@ import PageWord from "./PageWord";
 import DictionaryService from "../../dictionary/services/DictionaryService";
 import SearchDictionaryPanel from "../../dictionary/components/SearchDictionaryPanel";
 import LangDropdownField from "../../langs/components/LangDropdownField";
+import SearchBookPanel from "../../book/components/SearchBookPanel";
+import { Link } from "react-router-dom";
+import WordService from "../../word/services/WordService";
 
 
 const PageEditorPanel = () => {
@@ -109,18 +112,52 @@ const PageEditorPanel = () => {
         }
     }
 
+    const createNewWord = async () => {
+        try {
+            if(curPageWord && selectedBook && selectedDictionary){
+                curPageWord.book = selectedBook;
+                curPageWord.dictionary = selectedDictionary;
+                const response = await WordService.addWord(curPageWord);
+                console.log(response);
+            } 
+        } catch(e) {
+            console.log(e.response);
+        }
+        setSelectedDictionary({} as Dictionary);
+        setCurPageWord({} as Word);
+        setIsDictFound(false);
+    }
+
     const handleSelectDictionary = (dictionary:Dictionary) => {
         setSelectedDictionary(dictionary)
+    }
+
+    const handleSelectBook = (book:Book) => {
+        setSelectedBook(book)
     }
 
     return (
         <Container fluid className="m-3">
             <Row>
                 <Col md={6} className="border">
-                    <Row>
-                        <PageEditorForm onChangePageNumber={onChangePageNumber} submitAction={parsePageText}></PageEditorForm>
+                    <Accordion>
+                        <Accordion.Item eventKey="0">
+                            <Accordion.Header>Search Book</Accordion.Header>
+                            <Accordion.Body>
+                                <SearchBookPanel selectAction={handleSelectBook}></SearchBookPanel>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                        <Accordion.Item eventKey="1">
+                            <Accordion.Header>Input page</Accordion.Header>
+                            <Accordion.Body>
+                                <PageEditorForm onChangePageNumber={onChangePageNumber} submitAction={parsePageText}></PageEditorForm>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                    <Row className="p-2">
+                        <span>Book: {selectedBook.title}</span>
                     </Row>
-                    <Row>
+                    <Row className="p-2">
                         <span>Page Number: {curPageNum}</span>
                     </Row>
                     <Row>
@@ -147,7 +184,7 @@ const PageEditorPanel = () => {
                         </Col>
                     </Row>
                 </Col>
-                <Col md={5} className="border p-2">
+                <Col md={6} className="border p-2">
                     <h5 className="text-center">Dictionary</h5>
                     <Row className="border p-2">
                         <LangDropdownField handler={handleSelectLanguage} langs={langs}/>
@@ -167,6 +204,14 @@ const PageEditorPanel = () => {
                                 <div>base form:  {selectedDictionary?.baseForm}</div>
                                 <div>grammar:    {selectedDictionary?.grammar}</div>
                                 <div>definition: {selectedDictionary?.definition}</div>
+                            </Row>
+                            <Row className="border p-2">
+                                <Col>
+                                    <span>Create Word linked to this Dictionary card: </span>
+                                </Col>
+                                <Col>
+                                    <Button variant="outline-primary" style={{width: 150}} type="submit" onClick={createNewWord}> Create </Button>
+                                </Col>
                             </Row>
                             <Row>
                                 <Form>
