@@ -13,9 +13,10 @@ const WordTableRow = (props:WordProps) => {
     return (
         <tr>
             <th scope="row">{props.rowNum}</th> 
-            <td>{props.word.id}</td>
+            <td>{props.word.pageNum}</td>
+            <td>{props.word.lineNum}</td>
+            <td>{props.word.wordNum}</td>
             <td>{props.word.txtContent}</td>
-            <td>{props.word.grammar}</td>
             <td>
                 <button className="btn btn-primary mx-2">View</button>
                 <Link to={`/word/edit/${props.word.id}`} className="btn btn-outline-primary mx-2">Update</Link>

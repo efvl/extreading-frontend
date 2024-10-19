@@ -17,9 +17,10 @@ const WordTable = (props:WordTableProps) => {
                 <thead>
                     <tr>
                     <th scope="col">#</th>
-                    <th scope="col">id</th>
+                    <th scope="col">page</th>
+                    <th scope="col">line</th>
+                    <th scope="col">num</th>
                     <th scope="col">TxtContent</th>
-                    <th scope="col">Grammar</th>
                     <th scope="col">Actions</th>
                     </tr>
                 </thead>

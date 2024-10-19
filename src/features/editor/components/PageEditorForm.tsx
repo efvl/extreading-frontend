@@ -28,6 +28,7 @@ const PageEditorForm = (props:PageEditorFormProps) => {
     const submitPageText = (e) => {
         e.preventDefault();
         props.submitAction(inputPageText, curPageNum);
+        setInputPageText("");
     }
 
     const updatePageNum = (numPage:number) => {

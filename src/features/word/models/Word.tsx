@@ -12,4 +12,6 @@ export interface Word {
     grammar?: string;
     info?: string;
     dictionary?: Dictionary;
+    isSelected?: boolean;
+    lineIndex?: number;
 }

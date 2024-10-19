@@ -9,7 +9,8 @@ interface PageWordProps {
 }
 
 const PageWord = (props:PageWordProps) => {
-
+    const defaultColor = 'black';
+    const selectedColor = '#de5709';
     const [curWord, setCurWord] = useState<Word>({});
 
     useEffect(() => {
@@ -25,7 +26,8 @@ const PageWord = (props:PageWordProps) => {
 
     return (
         <>
-            <span onClick={clickWordAction} key={"pageWord_" + props.arrIndex}> {curWord.original}</span>
+            <span style={{ 'color': props.word.isSelected? selectedColor : defaultColor, 'fontSize': '1.2em', 'fontWeight': '500' }} 
+                onClick={clickWordAction} key={"pageWord_" + props.arrIndex}> {curWord.original}</span>
         </>
     );
 };

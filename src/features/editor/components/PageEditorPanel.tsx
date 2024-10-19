@@ -14,6 +14,8 @@ import LangDropdownField from "../../langs/components/LangDropdownField";
 import SearchBookPanel from "../../book/components/SearchBookPanel";
 import { Link } from "react-router-dom";
 import WordService from "../../word/services/WordService";
+import { WordListDto } from "../../word/models/WordListDto";
+import { WordSearchRequest } from "../../word/models/WordSearchRequest";
 
 
 const PageEditorPanel = () => {
@@ -25,9 +27,12 @@ const PageEditorPanel = () => {
     const [inputPageText, setInputPageText] = useState<string>("");
     const [selectedBook, setSelectedBook] = useState<Book>({});
     const [selectedDictionary, setSelectedDictionary] = useState<Dictionary>({});
-    const [isDictFound, setIsDictFound] = useState<boolean>(false)
+    const [isDictFound, setIsDictFound] = useState<boolean>(false);
+    const [isPageCreated, setIsPageCreated] = useState<boolean>(false);
     const [curPageNum, setCurPageNum] = useState<number>(0);
     const [curPageWord, setCurPageWord] = useState<Word>({});
+    const [countInPage, setCountInPage] = useState<number>(0);
+    const [prevPage, setPrevPage] = useState<Word[]>([]);
 
     const handleSelectLanguage = (e: String) => {
         let lang = langs.find(item => item.id == e);
@@ -47,9 +52,20 @@ const PageEditorPanel = () => {
         }
     }
 
+    const getSymbolsString = async (txt:string) => {
+        var chars = txt.split('');
+        var result = "";
+        chars.forEach((ch) => {
+            result += ch.codePointAt(0).toString(16)
+            result += " ";
+        })
+        return result;
+    }
+
     let whitespaceChars = /\s/;
     let newLineChars = /\r|\n/g;
     let lastChars = /.+(\.|\?|\!)$/
+    
 
     const parsePageText = async (inputText:string, pageNum:number) => {
         setInputPageText(inputText)
@@ -62,18 +78,20 @@ const PageEditorPanel = () => {
         pageLines.forEach((line:string, index:number) => {
 
             console.log(" " + index + " " + line);
-            line = line.replace(/\u2014/g, ", ");
+            line = line.replace(/\u2014/g, ", ").replace("F I G U R E", "Figure");
             
             let lineWords = line.split(whitespaceChars);
+            var lineChars = 0;
             lineWords.forEach((word:string, wIndex: number) => {
                 let curWord = { 
                     book: selectedBook,
-                    dictionary: selectedDictionary,
+                    // dictionary: selectedDictionary,
                     pageNum: pageNum,
                     lineNum: index,
                     wordNum: wIndex,
                     original: word,
-                    txtContent: word.replace(/\,|\.|\!\?/g, "").toLowerCase()
+                    lineIndex: lineChars + word.length, 
+                    txtContent: word.replace(/[\u0021-\u002c]|[\u002e-\u003f]|[\u201c-\u205e]/g, "").toLowerCase()
                 } as Word
                 pageWordsList.push(curWord);
                 console.log(" " + wIndex + " " + word)
@@ -84,6 +102,16 @@ const PageEditorPanel = () => {
 
     const clickPageWordHandler = async (selectedWord:Word) => {
         setCurPageWord(selectedWord);
+        console.log(getSymbolsString(selectedWord.original));
+        var counts = 0;
+        pageWords.forEach((w) => {
+            if (w.txtContent == selectedWord.txtContent) {
+                counts++;
+            }
+            w.isSelected = (w.txtContent == selectedWord.txtContent)
+        })
+        setCountInPage(counts);
+        setPageWords(pageWords);
         const response = await DictionaryService.searchDictionaries( { languageId:filterLang.id, txtContent:selectedWord.txtContent } );
         if(response.data.length > 0) {
             setSelectedDictionary(response.data[0]);
@@ -92,6 +120,10 @@ const PageEditorPanel = () => {
             setSelectedDictionary({} as Dictionary);
             setIsDictFound(false)
         }
+    }
+
+    const clickPrevWordHandler = async (selectedWord:Word) => {
+        console.log(getSymbolsString(selectedWord.original));
     }
 
     const onChangePageNumber = async (pageNumber:number) => {
@@ -128,6 +160,71 @@ const PageEditorPanel = () => {
         setIsDictFound(false);
     }
 
+    const createPageWords = async () => {
+        try {
+            if(pageWords.length > 0 && selectedBook) {
+                setIsPageCreated(true)
+                let data = { wordList:pageWords, pageNum:curPageNum, book:selectedBook} as WordListDto
+                const response = await WordService.addWords(data);
+                console.log(response);
+            } 
+        } catch(e) {
+            console.log(e.response);
+        }
+        setSelectedDictionary({} as Dictionary);
+        setCurPageWord({} as Word);
+        setIsDictFound(false);
+    }
+
+    const searchPrevPageWords = async () => {
+        let prev = curPageNum - 1;
+        searchPageWords(prev);
+    }
+
+    const searchNextPageWords = async () => {
+        // let pWords = [];
+        // if(pageWords.length > 0) {
+        //     let lastLine = pageWords[pageWords.length - 1].lineNum;
+        //     if(lastLine > 5) {
+        //         pageWords.forEach(w => {
+        //             if(w.lineNum > (lastLine - 5)) {
+        //                 pWords.push({...w});
+        //             }
+        //         })
+        //     }
+        // }
+        // setPrevPage(pWords);
+
+        let next = curPageNum + 1;
+        searchPageWords(next);
+    }
+
+    const searchPageWords = async (pNum:number) => {
+        setCurPageNum(pNum);
+        try {
+            if(pNum >=0 && selectedBook) {
+                let searchData = { pageNum:pNum, bookId:selectedBook.id } as WordSearchRequest
+                const response = await WordService.searchPageWords(searchData);
+                console.log(response);
+                let words = response.data as Word[]
+                var lineIndex = 0;
+                words.forEach((w) => {
+                    if(w.wordNum == 0 || lineIndex > 88) {
+                        lineIndex = 0;
+                    }
+                    w.lineIndex = lineIndex;
+                    lineIndex += (w.original.length + 1);
+                })
+                setPageWords(words)
+            } 
+        } catch(e) {
+            console.log(e.response);
+        }
+        setSelectedDictionary({} as Dictionary);
+        setCurPageWord({} as Word);
+        setIsDictFound(false);
+    }
+
     const handleSelectDictionary = (dictionary:Dictionary) => {
         setSelectedDictionary(dictionary)
     }
@@ -154,27 +251,48 @@ const PageEditorPanel = () => {
                             </Accordion.Body>
                         </Accordion.Item>
                     </Accordion>
-                    <Row className="p-2">
+                    <Row className="p-2" style={{ 'fontSize': '1.2em' }}>
                         <span>Book: {selectedBook.title}</span>
                     </Row>
-                    <Row className="p-2">
-                        <span>Page Number: {curPageNum}</span>
+                    <Row className="p-2" style={{ 'fontSize': '1.2em' }}>
+                        <Col>
+                            <span>Page Number: {curPageNum}&emsp; {pageWords.length} words</span>
+                        </Col>
+                        <Col>
+                            <Button variant="outline-primary" style={{width: 150}} type="submit" disabled={curPageNum < 1} 
+                                onClick={searchPrevPageWords}> Prev Page </Button>
+                        </Col>
+                        <Col>
+                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
+                                onClick={() => searchPageWords(curPageNum)}> Search Page </Button>
+                        </Col>
+                        <Col>
+                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
+                                onClick={searchNextPageWords}> Next Page </Button>
+                        </Col>
+                        <Col>
+                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
+                                onClick={createPageWords}> Create Page </Button>
+                        </Col>
                     </Row>
-                    <Row>
-                        <Col md={1}>
-                            {pageWords.map((item, index) => 
+                    {/* <Row>
+                        <Col>
+                            {prevPage.map((item, index) => 
                                 <>
-                                {item.wordNum == 0 
-                                    ? <><br></br>{String(item.lineNum).padStart(3, "0")}&emsp;</> 
+                                {(item.wordNum == 0 || item.lineIndex == 0)
+                                    ? <br></br> 
                                     : <span></span>
                                 }
+                                <PageWord word={item} arrIndex={1000+index} clickAction={clickPrevWordHandler}></PageWord>
                                 </>
                             )}
                         </Col>
-                        <Col md={10}>
+                    </Row> */}
+                    <Row>
+                        <Col>
                             {pageWords.map((item, index) => 
                                 <>
-                                {item.wordNum == 0 
+                                {(item.wordNum == 0 || item.lineIndex == 0)
                                     ? <br></br> 
                                     : <span></span>
                                 }
@@ -189,10 +307,16 @@ const PageEditorPanel = () => {
                     <Row className="border p-2">
                         <LangDropdownField handler={handleSelectLanguage} langs={langs}/>
                     </Row>
+                    <Row className="border p-2" style={{ 'fontSize': '1.2em' }}>
+                        <span>Book: {selectedBook.title}</span>
+                    </Row>
                     <Row className="border p-2">
-                        <h5>{String(curPageWord?.lineNum).padStart(3,"0")}&emsp;
+                        <h5>{String(curPageWord?.pageNum).padStart(3,"0")}&emsp;
+                            {String(curPageWord?.lineNum).padStart(3,"0")}&emsp;
                             {String(curPageWord?.wordNum).padStart(3, "0")}&emsp;
-                            {curPageWord?.original}
+                            {curPageWord?.original}&emsp;
+                            {countInPage} on page&emsp;
+                            index:{curPageWord.lineIndex}
                         </h5>
                     </Row>
                     <Row className="border p-2">
@@ -212,8 +336,8 @@ const PageEditorPanel = () => {
                                 <Col>
                                     <Button variant="outline-primary" style={{width: 150}} type="submit" onClick={createNewWord}> Create </Button>
                                 </Col>
-                            </Row>
-                            <Row>
+                            </Row></>
+                        :<><Row>
                                 <Form>
                                     <Form.Group className="mb-3" controlId="baseform_dic">
                                         <Form.Label>Base Form</Form.Label>
@@ -241,8 +365,7 @@ const PageEditorPanel = () => {
                                     </div>
                                 </Form>
                             </Row></>
-                        : <Row className="border p-2"><span>NOT FOUND</span></Row>
-                        }
+                    }
                 </Col>
             </Row>
         </Container>    
