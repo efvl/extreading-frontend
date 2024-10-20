@@ -16,6 +16,16 @@ export default class LangService {
         return response;
     }
 
+    static async searchLast5Lines(searchData:WordSearchRequest) {
+        const response = await axios.post("http://localhost:8082/exread/v1/word/search/last5lines", searchData);
+        return response;
+    }
+
+    static async deletePageWords(searchData:WordSearchRequest) {
+        const response = await axios.post("http://localhost:8082/exread/v1/word/delete/page", searchData);
+        return response;
+    }
+
     static async addWord(word:Word) {
         const response = await axios.post("http://localhost:8082/exread/v1/word", word);
         return response;

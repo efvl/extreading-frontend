@@ -171,32 +171,45 @@ const PageEditorPanel = () => {
         } catch(e) {
             console.log(e.response);
         }
-        setSelectedDictionary({} as Dictionary);
-        setCurPageWord({} as Word);
-        setIsDictFound(false);
+        clearSelections();
     }
 
     const searchPrevPageWords = async () => {
         let prev = curPageNum - 1;
         searchPageWords(prev);
+        searchPrevLast5Lines(prev - 1);
     }
 
     const searchNextPageWords = async () => {
-        // let pWords = [];
-        // if(pageWords.length > 0) {
-        //     let lastLine = pageWords[pageWords.length - 1].lineNum;
-        //     if(lastLine > 5) {
-        //         pageWords.forEach(w => {
-        //             if(w.lineNum > (lastLine - 5)) {
-        //                 pWords.push({...w});
-        //             }
-        //         })
-        //     }
-        // }
-        // setPrevPage(pWords);
-
         let next = curPageNum + 1;
         searchPageWords(next);
+        searchPrevLast5Lines(next - 1);
+    }
+
+    const searchPrevLast5Lines = async (pNum:number) => {
+        try {
+            if(pNum >=0 && selectedBook) {
+                let searchData = { pageNum:pNum, bookId:selectedBook.id } as WordSearchRequest
+                const response = await WordService.searchLast5Lines(searchData);
+                console.log(response);
+                let words = response.data as Word[]
+                var lineIndex = 0;
+                words.forEach((w) => {
+                    if(w.wordNum == 0 || lineIndex > 88) {
+                        lineIndex = 0;
+                    }
+                    w.lineIndex = lineIndex;
+                    lineIndex += (w.original.length + 1);
+                })
+                setPrevPage(words);
+            } else {
+                setPrevPage([]);
+            }
+
+        } catch(e) {
+            console.log(e.response);
+        }
+        clearSelections();
     }
 
     const searchPageWords = async (pNum:number) => {
@@ -220,6 +233,25 @@ const PageEditorPanel = () => {
         } catch(e) {
             console.log(e.response);
         }
+        clearSelections();
+    }
+
+    const deletePageWords = async (pNum:number) => {
+        setCurPageNum(pNum);
+        try {
+            if(pNum >=0 && selectedBook) {
+                let searchData = { pageNum:pNum, bookId:selectedBook.id } as WordSearchRequest
+                const response = await WordService.deletePageWords(searchData);
+                console.log("deleted: " + response.data);
+                setPageWords([])
+            } 
+        } catch(e) {
+            console.log(e.response);
+        }
+        clearSelections();
+    }
+
+    const clearSelections = async () => {
         setSelectedDictionary({} as Dictionary);
         setCurPageWord({} as Word);
         setIsDictFound(false);
@@ -247,35 +279,37 @@ const PageEditorPanel = () => {
                         <Accordion.Item eventKey="1">
                             <Accordion.Header>Input page</Accordion.Header>
                             <Accordion.Body>
-                                <PageEditorForm onChangePageNumber={onChangePageNumber} submitAction={parsePageText}></PageEditorForm>
+                                <PageEditorForm curPageNum={curPageNum} onChangePageNumber={onChangePageNumber} submitAction={parsePageText}></PageEditorForm>
                             </Accordion.Body>
                         </Accordion.Item>
                     </Accordion>
                     <Row className="p-2" style={{ 'fontSize': '1.2em' }}>
                         <span>Book: {selectedBook.title}</span>
+                        <span>Page Number: {curPageNum}&emsp; {pageWords.length} words</span>
                     </Row>
-                    <Row className="p-2" style={{ 'fontSize': '1.2em' }}>
+                    <Row style={{ 'fontSize': '1.2em' }}>
                         <Col>
-                            <span>Page Number: {curPageNum}&emsp; {pageWords.length} words</span>
+                            <Button variant="outline-primary" style={{width: 100}} type="submit" disabled={curPageNum < 1} 
+                                onClick={searchPrevPageWords}> Prev </Button>
                         </Col>
                         <Col>
-                            <Button variant="outline-primary" style={{width: 150}} type="submit" disabled={curPageNum < 1} 
-                                onClick={searchPrevPageWords}> Prev Page </Button>
+                            <Button variant="outline-primary" style={{width: 100}} type="submit" 
+                                onClick={() => searchPageWords(curPageNum)}> Search </Button>
                         </Col>
                         <Col>
-                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
-                                onClick={() => searchPageWords(curPageNum)}> Search Page </Button>
+                            <Button variant="outline-primary" style={{width: 100}} type="submit" 
+                                onClick={searchNextPageWords}> Next </Button>
                         </Col>
                         <Col>
-                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
-                                onClick={searchNextPageWords}> Next Page </Button>
+                            <Button variant="outline-primary" style={{width: 100}} type="submit" 
+                                onClick={createPageWords}> Create </Button>
                         </Col>
                         <Col>
-                            <Button variant="outline-primary" style={{width: 150}} type="submit" 
-                                onClick={createPageWords}> Create Page </Button>
+                            <Button variant="outline-primary" style={{width: 100}} type="submit" disabled={curPageNum < 0} 
+                                onClick={() => deletePageWords(curPageNum)}> Delete </Button>
                         </Col>
                     </Row>
-                    {/* <Row>
+                    <Row>
                         <Col>
                             {prevPage.map((item, index) => 
                                 <>
@@ -287,7 +321,7 @@ const PageEditorPanel = () => {
                                 </>
                             )}
                         </Col>
-                    </Row> */}
+                    </Row>
                     <Row>
                         <Col>
                             {pageWords.map((item, index) => 
