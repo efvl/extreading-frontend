@@ -57,8 +57,6 @@ const EditDictionaryPanel = (props:EditDictionaryPanelProps) => {
     return (
         <Container className="mt-3">
             <Row>
-                <Col md={4} className="border">
-                </Col>
                 <Col md={6} className="border p-4 ">
                     <Row>
                         <Col className="col-8">Language: {selectedLanguage.fullName}</Col>
@@ -70,7 +68,19 @@ const EditDictionaryPanel = (props:EditDictionaryPanelProps) => {
                         <DictionaryForm isEdit={true} submitAction={updateEditedDictionary} dictionary={editedDictionary}/>
                     </Row>
                 </Col>
-                <Col>
+                <Col md={6} className="border">
+                    <Row className="border p-2 ">
+                        <span>fleshcard activity: translation</span>
+                    </Row>
+                    <Row className="border p-2 ">
+                        <span>fleshcard activity: phrase with space</span>
+                    </Row>
+                    <Row className="border p-2 ">
+                        <span>fleshcard activity: definition</span>
+                    </Row>
+                    <Row className="border p-2 ">
+                        <span></span>
+                    </Row>
                 </Col>
             </Row>
         </Container>   

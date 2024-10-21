@@ -3,6 +3,8 @@ import Form from 'react-bootstrap/Form';
 import { Dictionary } from '../models/Dictionary';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { isEditable } from '@testing-library/user-event/dist/utils';
+import { Row } from 'react-bootstrap';
 
 interface DictionaryFormProps {
     dictionary?:Dictionary,
@@ -29,19 +31,28 @@ const DictionaryForm = (props:DictionaryFormProps) => {
 
     return (
             <Form>
+                {props.isEdit
+                    ? <>
+                        <Row  className="border p-2">
+                            <h5>{formDictionaryValue.txtContent}</h5>
+                        </Row>
+                    </>
+                    : <>
+                        <Form.Group className="mb-3" controlId="txtContent">
+                        <Form.Label>txtContent</Form.Label>
+                        <Form.Control type="text"
+                            placeholder="enter txtContent"
+                            value={formDictionaryValue?.txtContent}
+                            onChange={e => setFormDictionaryValue({...formDictionaryValue, txtContent: e.target.value})}/>
+                        </Form.Group>
+                    </>
+                }
                 <Form.Group className="mb-3" controlId="baseform">
                     <Form.Label>BaseForm</Form.Label>
                     <Form.Control type="text" 
                         placeholder="enter base form"
                         value={formDictionaryValue?.baseForm}
                         onChange={e => setFormDictionaryValue({...formDictionaryValue, baseForm: e.target.value})}/>
-                </Form.Group>
-                <Form.Group className="mb-3" controlId="txtContent">
-                    <Form.Label>txtContent</Form.Label>
-                    <Form.Control type="text" disabled
-                        placeholder="enter txtContent"
-                        value={formDictionaryValue?.txtContent}
-                        onChange={e => setFormDictionaryValue({...formDictionaryValue, txtContent: e.target.value})}/>
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="definition">
                     <Form.Label>Definition</Form.Label>

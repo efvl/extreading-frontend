@@ -10,6 +10,12 @@ export default class DictionaryService {
         return response;
     }
 
+    static async searchDictionaryAndStats(searchData:DictionarySearchRequest) {
+        const response = await axios.post("http://localhost:8082/exread/v1/dict/search/stats", searchData);
+        // console.log(response.data);
+        return response;
+    }
+
     static async addDictionary(dictionary:Dictionary) {
         const response = await axios.post("http://localhost:8082/exread/v1/dict", dictionary);
         // console.log(response.data);
